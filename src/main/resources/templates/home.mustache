@@ -7,15 +7,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 
 <body>
 
     <div class="container mt-3">
 
-        <form action="/search" class="d-flex justify-content-end" method="get">
-            <input name="keyword" class="me-2" type="text" placeholder="Search">
-            <button class="btn btn-primary" type="submit">검색</button>
+        <form class="d-flex justify-content-end">
+            <input id="keyword" class="me-2" type="text" placeholder="Search">
+            <button id="btn-search" class="btn btn-primary" type="button">검색</button>
         </form>
 
         <table class="table table-striped">
@@ -27,18 +28,48 @@
                     <th>작성일</th>
                 </tr>
             </thead>
-            <tbody>
-                {{#boards}}
-                <tr>
-                    <td>{{id}}</td>
-                    <td>{{title}}</td>
-                    <td>{{content}}</td>
-                    <td>{{createDate}}</td>
-                </tr>
-                {{/boards}}
+            <tbody id="board-box">
+
             </tbody>
         </table>
     </div>
+
+    <script>
+
+        $("#btn-search").click(()=>{
+            let keyword = $("#keyword").val(); // 사용자에게 받은 값을 찾기
+            search(keyword);
+        });
+
+        async function search(keyword) { // keyword에 의존적인 함수
+            console.log(keyword);
+            let response = await fetch(`/api/search?keyword=${keyword}`); // get 요청은 생략이 가능함
+            // 서치를 위한 변수 바인딩, keyword가 검색어가 된다.
+
+            let responsePars = await response.json();
+            console.log(responsePars);
+
+            if (responsePars.code == 1) { // 통신을 성공했을 때
+                $("#board-box").empty(); // 부모 안에 있는 자식을 지우는 메서드
+                for (boardTbl of responsePars.data) { // 포이치문, responsePars.data만큼 boardTbl에 넣기
+                    $("#board-box").append(trRender(boardTbl)); // html을 append하기
+                }
+            }
+
+        }
+
+        // 변수 바인딩
+        function trRender(boardTbl) { // tbody를 찾아서 안에다 append하기
+            return `<tr>
+                    <td>${boardTbl.id}</td>
+                    <td>${boardTbl.title}</td>
+                    <td>${boardTbl.content}</td>
+                    <td>${boardTbl.createDate}</td>
+                </tr>`;
+        }
+
+        search(""); // 인수에 nul이 아니라 공백이 들어가게 해준다.
+    </script>
 
 </body>
 
